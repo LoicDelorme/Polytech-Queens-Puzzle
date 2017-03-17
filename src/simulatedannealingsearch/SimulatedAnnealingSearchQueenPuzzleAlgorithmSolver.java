@@ -1,6 +1,6 @@
 package simulatedannealingsearch;
 
-import fr.polytech.queenspuzzle.Pair;
+import fr.polytech.queenspuzzle.algorithms.Pair;
 import fr.polytech.queenspuzzle.algorithms.QueenPuzzleAlgorithmSolver;
 
 /**

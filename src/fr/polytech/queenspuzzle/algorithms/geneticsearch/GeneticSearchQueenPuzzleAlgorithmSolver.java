@@ -1,6 +1,6 @@
 package fr.polytech.queenspuzzle.algorithms.geneticsearch;
 
-import fr.polytech.queenspuzzle.Pair;
+import fr.polytech.queenspuzzle.algorithms.Pair;
 import fr.polytech.queenspuzzle.algorithms.QueenPuzzleAlgorithmSolver;
 
 /**

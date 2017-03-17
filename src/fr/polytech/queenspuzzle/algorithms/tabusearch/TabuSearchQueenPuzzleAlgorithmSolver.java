@@ -3,7 +3,7 @@ package fr.polytech.queenspuzzle.algorithms.tabusearch;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.polytech.queenspuzzle.Pair;
+import fr.polytech.queenspuzzle.algorithms.Pair;
 import fr.polytech.queenspuzzle.algorithms.QueenPuzzleAlgorithmSolver;
 
 /**
@@ -119,7 +119,7 @@ public class TabuSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorithmSo
 					neighbor[x] = neighbor[y];
 					neighbor[y] = temp;
 
-					neighbors.add(new Pair<int[], int[]>(neighbor, new int[] { x, y }));
+					neighbors.add(new Pair<int[], int[]>(new int[] { x, y }, neighbor));
 				}
 			}
 		}

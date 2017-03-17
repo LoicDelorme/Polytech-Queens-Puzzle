@@ -1,7 +1,5 @@
 package fr.polytech.queenspuzzle.algorithms;
 
-import fr.polytech.queenspuzzle.Pair;
-
 /**
  * This class represents a queen puzzle algorithm solver.
  *
