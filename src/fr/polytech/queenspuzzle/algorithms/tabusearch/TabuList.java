@@ -24,9 +24,9 @@ public class TabuList {
 	private final int size;
 
 	/**
-	 * The list of forbidden elementary transformations.
+	 * The forbidden transformations.
 	 */
-	private final List<int[]> elementaryTransformations;
+	private final List<int[]> forbiddenTransformations;
 
 	/**
 	 * The tabu list.
@@ -36,33 +36,33 @@ public class TabuList {
 	/**
 	 * Create a tabu list.
 	 * 
-	 * @param domainSize
-	 *            The domain size.
+	 * @param nbQueens
+	 *            The number of queens.
 	 * @param size
 	 *            The size of the tabu list.
 	 */
-	public TabuList(int domainSize, int size) {
+	public TabuList(int nbQueens, int size) {
 		this.size = size;
-		this.elementaryTransformations = new ArrayList<int[]>(size + 1);
+		this.forbiddenTransformations = new ArrayList<int[]>(size + 1);
 		this.tabuList = new TreeMap<Integer, List<Integer>>();
 
-		initializeTabuList(domainSize);
+		initializeTabuList(nbQueens);
 	}
 
 	/**
 	 * Initialize the tabu list.
 	 * 
-	 * @param domainSize
-	 *            The domain size.
+	 * @param nbQueens
+	 *            The number of queens.
 	 */
-	private void initializeTabuList(int domainSize) {
-		for (int offset = 0; offset < domainSize; offset++) {
-			this.tabuList.put(offset, new ArrayList<Integer>(domainSize));
+	private void initializeTabuList(int nbQueens) {
+		for (int offset = 0; offset < nbQueens; offset++) {
+			this.tabuList.put(offset, new ArrayList<Integer>(nbQueens));
 		}
 	}
 
 	/**
-	 * Check if the elementary transformation is valid.
+	 * Check if the transformation is valid.
 	 * 
 	 * @param x
 	 *            The X position.
@@ -70,7 +70,7 @@ public class TabuList {
 	 *            The Y position.
 	 * @return True if it is a valid elementary transformation, else False.
 	 */
-	public boolean isValidElementaryTransformation(int x, int y) {
+	public boolean isValidTransformation(int x, int y) {
 		return !(this.tabuList.get(x).contains(y) && this.tabuList.get(y).contains(x));
 	}
 
@@ -81,11 +81,11 @@ public class TabuList {
 	 *            The new elementary transformation.
 	 */
 	public void addElementaryTransformation(int[] transformation) {
-		this.elementaryTransformations.add(DEFAULT_INSERTION_OFFSET, transformation);
 		this.tabuList.get(transformation[0]).add(Integer.valueOf(transformation[1]));
 		this.tabuList.get(transformation[1]).add(Integer.valueOf(transformation[0]));
 
-		if (this.elementaryTransformations.size() > this.size) {
+		this.forbiddenTransformations.add(DEFAULT_INSERTION_OFFSET, transformation);
+		if (this.forbiddenTransformations.size() > this.size) {
 			removeOldElementaryTransformations();
 		}
 	}
@@ -94,12 +94,12 @@ public class TabuList {
 	 * Remove the old elementary transformations.
 	 */
 	private void removeOldElementaryTransformations() {
-		final List<int[]> oldTransformations = this.elementaryTransformations.subList(this.size, this.elementaryTransformations.size());
-		for (int[] oldTransformation : oldTransformations) {
-			this.tabuList.get(oldTransformation[0]).remove(Integer.valueOf(oldTransformation[1]));
-			this.tabuList.get(oldTransformation[1]).remove(Integer.valueOf(oldTransformation[0]));
+		final List<int[]> oldForbiddenTransformations = this.forbiddenTransformations.subList(this.size, this.forbiddenTransformations.size());
+		for (int[] oldForbiddenTransformation : oldForbiddenTransformations) {
+			this.tabuList.get(oldForbiddenTransformation[0]).remove(Integer.valueOf(oldForbiddenTransformation[1]));
+			this.tabuList.get(oldForbiddenTransformation[1]).remove(Integer.valueOf(oldForbiddenTransformation[0]));
 		}
 
-		oldTransformations.clear();
+		oldForbiddenTransformations.clear();
 	}
 }

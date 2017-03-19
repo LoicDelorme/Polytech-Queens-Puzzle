@@ -22,9 +22,9 @@ public abstract class QueenPuzzleAlgorithmSolver {
 	 * @return The computed fitness value.
 	 */
 	public int fitness(int[] queensState) {
+		final int nbQueens = queensState.length;
 		int fitness = 0;
 
-		final int nbQueens = queensState.length;
 		int x, y, queen_x, queen_y;
 		for (int currentQueen = 0; currentQueen < nbQueens; currentQueen++) {
 			x = currentQueen;
@@ -81,7 +81,7 @@ public abstract class QueenPuzzleAlgorithmSolver {
 	 * 
 	 * @param initialState
 	 *            The initial state.
-	 * @return A pair which contains a solution with its corresponding fitness value.
+	 * @return A pair which contains the solution with its corresponding fitness value.
 	 */
 	public abstract Pair<int[], Integer> solve(int[] initialState);
 }

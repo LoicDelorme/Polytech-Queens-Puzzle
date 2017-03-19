@@ -21,20 +21,26 @@ public class Launcher {
 	 *            Some arguments.
 	 */
 	public static void main(String[] args) {
-		final int nbQueens = 100;
-		final long a = System.currentTimeMillis();
+		final long startTime = System.currentTimeMillis();
 
-		QueenPuzzleAlgorithmSolver algorithmSolver = new TabuSearchQueenPuzzleAlgorithmSolver(10, 500);
-		QueenPuzzleSolver solver = new QueenPuzzleProblemSolver(nbQueens, algorithmSolver);
-		final Pair<int[], Integer> solve = solver.solve();
-		final int[] key = solve.getKey();
-		final Integer value = solve.getValue();
+		final int nbQueens = 200;
+		final QueenPuzzleAlgorithmSolver algorithmSolver = new TabuSearchQueenPuzzleAlgorithmSolver(10, 175);
 
-		System.out.println("sol: " + Arrays.toString(key));
-		System.out.println("value: " + value);
+		final QueenPuzzleSolver solver = new QueenPuzzleProblemSolver(nbQueens, algorithmSolver);
+		final Pair<int[], Integer> result = solver.solve();
 
-		final long b = System.currentTimeMillis();
+		final int[] solution = result.getKey();
+		final int fitness = result.getValue().intValue();
 
-		System.out.println((b - a) + " ms");
+		System.out.println("solution: " + Arrays.toString(solution));
+		System.out.println("fitness: " + fitness);
+
+		final long stopTime = System.currentTimeMillis();
+
+		final long elapsedTime = stopTime - startTime;
+		System.out.println(elapsedTime + " ms");
+		System.out.println((elapsedTime / 1000) + " s");
+		System.out.println(((elapsedTime / 1000) / 60) + " m");
+		System.out.println((((elapsedTime / 1000) / 60) / 60) + " h");
 	}
 }

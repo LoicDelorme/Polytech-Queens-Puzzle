@@ -1,8 +1,5 @@
 package fr.polytech.queenspuzzle.algorithms.tabusearch;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import fr.polytech.queenspuzzle.algorithms.Pair;
 import fr.polytech.queenspuzzle.algorithms.QueenPuzzleAlgorithmSolver;
 
@@ -15,27 +12,27 @@ import fr.polytech.queenspuzzle.algorithms.QueenPuzzleAlgorithmSolver;
 public class TabuSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorithmSolver {
 
 	/**
-	 * The size of the tabu list.
+	 * The tabu list size.
 	 */
-	private int size;
+	private int tabuListSize;
 
 	/**
 	 * The number of maximal iterations.
 	 */
-	private int nMax;
+	private int nbMaxIterations;
 
 	/**
 	 * Create a tabu search queen puzzle algorithm solver.
 	 * 
-	 * @param size
-	 *            The size of the tabu list.
-	 * @param nMax
+	 * @param tabuListSize
+	 *            The tabu list size.
+	 * @param nbMaxIterations
 	 *            The number of maximal iterations.
 	 */
-	public TabuSearchQueenPuzzleAlgorithmSolver(int size, int nMax) {
+	public TabuSearchQueenPuzzleAlgorithmSolver(int tabuListSize, int nbMaxIterations) {
 		super();
-		this.size = size;
-		this.nMax = nMax;
+		this.tabuListSize = tabuListSize;
+		this.nbMaxIterations = nbMaxIterations;
 	}
 
 	@Override
@@ -46,84 +43,90 @@ public class TabuSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorithmSo
 		int[] xMin = x;
 		int fMin = fX;
 
-		int[] bestNeighbor = null;
-		int fBestNeighbor;
-		int[] bestNeighborElementaryTransformation = null;
-
-		int fitness = Integer.MAX_VALUE;
 		int delta;
-
 		int currentIteration = 0;
-		final TabuList tabuList = new TabuList(initialState.length, this.size);
-		final List<Pair<int[], int[]>> neighbors = new ArrayList<Pair<int[], int[]>>();
+		final TabuList tabuList = new TabuList(initialState.length, this.tabuListSize);
+
+		Pair<int[], Pair<Integer, int[]>> generatedBestNeighbor = null;
+		int[] bestNeighbor;
+		int fBestNeighbor;
+		int[] bestNeighborTransformation;
 
 		do {
-			// Generate all neighbors without forbidden ones.
-			neighbors.clear();
-			neighbors.addAll(generateNeighbors(x, tabuList));
+			// Get the best neighbor.
+			generatedBestNeighbor = getBestNeighbor(x, tabuList);
 
-			if (!neighbors.isEmpty()) {
-				// Choose the best neighbor.
-				fBestNeighbor = Integer.MAX_VALUE;
-				for (Pair<int[], int[]> neighbor : neighbors) {
-					fitness = fitness(neighbor.getValue());
-					if (fitness < fBestNeighbor) {
-						bestNeighbor = neighbor.getValue();
-						fBestNeighbor = fitness;
-						bestNeighborElementaryTransformation = neighbor.getKey();
-					}
-				}
+			if (generatedBestNeighbor != null) {
+				// Recover neighbor data.
+				bestNeighbor = generatedBestNeighbor.getKey();
+				fBestNeighbor = generatedBestNeighbor.getValue().getKey().intValue();
+				bestNeighborTransformation = generatedBestNeighbor.getValue().getValue();
 
-				// Compute the delta.
+				// Compute the delta value.
 				delta = fBestNeighbor - fX;
 				if (delta >= 0) {
-					tabuList.addElementaryTransformation(bestNeighborElementaryTransformation);
+					tabuList.addElementaryTransformation(bestNeighborTransformation);
 				}
 
-				// Check if it is the best solution we have ever met.
+				// Check if it's the best solution we have ever met.
 				if (fBestNeighbor < fMin) {
 					fMin = fBestNeighbor;
 					xMin = bestNeighbor;
 				}
 
 				x = bestNeighbor;
-				fX = fitness;
+				fX = fBestNeighbor;
 			}
 
 			currentIteration++;
-		} while (currentIteration != this.nMax && !neighbors.isEmpty());
+		} while (currentIteration != this.nbMaxIterations && generatedBestNeighbor != null);
 
 		return new Pair<int[], Integer>(xMin, fMin);
 	}
 
 	/**
-	 * Generate the neighbors according to an initial state.
+	 * Generate all neighbors and get the best one according to an initial state.
 	 * 
 	 * @param initialState
 	 *            The initial state.
 	 * @param tabuList
 	 *            The tabu list.
-	 * @return The list of neighbors excluding invalid neighbors (forbidden elementary transformation).
+	 * @return The best neighbor.
 	 */
-	private List<Pair<int[], int[]>> generateNeighbors(int[] initialState, TabuList tabuList) {
-		final List<Pair<int[], int[]>> neighbors = new ArrayList<Pair<int[], int[]>>();
+	private Pair<int[], Pair<Integer, int[]>> getBestNeighbor(int[] initialState, TabuList tabuList) {
+		int[] bestNeighbor = null;
+		int fBestNeighbor = Integer.MAX_VALUE;
+		int[] bestNeighborTransformation = null;
 
 		int[] neighbor;
+		int fNeighbor;
 		int temp;
 		for (int x = 0; x < initialState.length; x++) {
 			for (int y = x + 1; y < initialState.length; y++) {
-				if (tabuList.isValidElementaryTransformation(x, y)) {
+				if (tabuList.isValidTransformation(x, y)) {
+					// Duplicate the initial state.
 					neighbor = initialState.clone();
 
+					// Apply local transformation (switch two columns).
 					temp = neighbor[x];
 					neighbor[x] = neighbor[y];
 					neighbor[y] = temp;
 
-					neighbors.add(new Pair<int[], int[]>(new int[] { x, y }, neighbor));
+					// Check if it's the best neighbor.
+					fNeighbor = fitness(neighbor);
+					if (fNeighbor < fBestNeighbor) {
+						bestNeighbor = neighbor;
+						fBestNeighbor = fNeighbor;
+						bestNeighborTransformation = new int[] { x, y };
+					}
 				}
 			}
 		}
 
-		return neighbors;
+		if (bestNeighbor == null) {
+			return null;
+		}
+
+		return new Pair<int[], Pair<Integer, int[]>>(bestNeighbor, new Pair<Integer, int[]>(fBestNeighbor, bestNeighborTransformation));
 	}
 }

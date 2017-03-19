@@ -1,7 +1,7 @@
 package fr.polytech.queenspuzzle.algorithms;
 
 /**
- * This class represents a pair object which contains a key and a value.
+ * This class represents a pair which contains a key and a value.
  *
  * @author DELORME Loïc
  * @param <K>
@@ -23,7 +23,7 @@ public class Pair<K, V> {
 	private final V value;
 
 	/**
-	 * Create a pair object.
+	 * Create a pair.
 	 * 
 	 * @param key
 	 *            The key.
