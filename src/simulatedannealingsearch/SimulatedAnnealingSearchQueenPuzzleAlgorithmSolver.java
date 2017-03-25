@@ -1,8 +1,9 @@
 package simulatedannealingsearch;
 
+import java.security.SecureRandom;
+
 import fr.polytech.queenspuzzle.algorithms.Pair;
 import fr.polytech.queenspuzzle.algorithms.QueenPuzzleAlgorithmSolver;
-import fr.polytech.queenspuzzle.algorithms.tabusearch.TabuList;
 
 /**
  * This class represents a simulated annealing search queen puzzle algorithm solver.
@@ -13,14 +14,24 @@ import fr.polytech.queenspuzzle.algorithms.tabusearch.TabuList;
 public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorithmSolver {
 
 	/**
+	 * The randomizer.
+	 */
+	private final static SecureRandom RANDOMIZER = new SecureRandom();
+
+	/**
 	 * The number of max moves over the dimension.
 	 */
-	private int nbMaxMoves;
+	private final int nbMaxMoves;
 
 	/**
 	 * The number of max temperature changes.
 	 */
-	private int nbMaxTemperatureChanges;
+	private final int nbMaxTemperatureChanges;
+
+	/**
+	 * The temperature degradation.
+	 */
+	private final double u;
 
 	/**
 	 * Create simulated annealing search queen puzzle algorithm solver.
@@ -29,11 +40,20 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver extends QueenPuz
 	 *            The number of max moves over the dimension.
 	 * @param nbMaxTemperatureChanges
 	 *            The number of max temperature changes.
+	 * @param u
+	 *            The temperature degradation.
 	 */
-	public SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver(int nbMaxMoves, int nbMaxTemperatureChanges) {
+	public SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver(int nbMaxMoves, int nbMaxTemperatureChanges, double u) {
 		super();
 		this.nbMaxMoves = nbMaxMoves;
 		this.nbMaxTemperatureChanges = nbMaxTemperatureChanges;
+		this.u = u;
+	}
+
+	private int initialiazeTemperature(int nbNeighbors, int[] initialState) {
+		for (int i = 0; i < nbNeighbors; i++) {
+
+		}
 	}
 
 	@Override
@@ -41,85 +61,67 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver extends QueenPuz
 		int[] x = initialState;
 		int fX = fitness(x);
 
-		int t = 0; // ??
-
 		int[] xMin = x;
 		int fMin = fX;
 
+		double temperature = initialiazeTemperature(nbNeighbors, initialState);
 		int delta;
-		int currentIteration = 0;
-		final TabuList tabuList = new TabuList(initialState.length, this.tabuListSize);
 
-		Pair<int[], Pair<Integer, int[]>> generatedBestNeighbor = null;
-		int[] bestNeighbor;
-		int fBestNeighbor;
-		int[] bestNeighborTransformation;
+		Pair<int[], Integer> randomNeighbor = null;
+		int[] neighbor;
+		int fNeighbor;
 
-		do {
-			// Get the best neighbor.
-			generatedBestNeighbor = getBestNeighbor(x, tabuList);
+		for (int currentTemperature = 0; currentTemperature < this.nbMaxTemperatureChanges; currentTemperature++) {
+			for (int currentMove = 0; currentMove < this.nbMaxMoves; currentMove++) {
+				randomNeighbor = getNeighbor(x);
+				neighbor = randomNeighbor.getKey();
+				fNeighbor = randomNeighbor.getValue().intValue();
 
-			if (generatedBestNeighbor != null) {
-				// Recover neighbor data.
-				bestNeighbor = generatedBestNeighbor.getKey();
-				fBestNeighbor = generatedBestNeighbor.getValue().getKey().intValue();
-				bestNeighborTransformation = generatedBestNeighbor.getValue().getValue();
+				delta = fNeighbor - fX;
+				if (delta <= 0) {
+					x = neighbor;
+					fX = fNeighbor;
 
-				// Compute the delta value.
-				delta = fBestNeighbor - fX;
-				if (delta >= 0) {
-					tabuList.addElementaryTransformation(bestNeighborTransformation);
+					if (fNeighbor < fMin) {
+						fMin = fNeighbor;
+						xMin = neighbor;
+					}
+				} else {
+					if (RANDOMIZER.nextDouble() <= Math.exp(-delta / temperature)) {
+						x = neighbor;
+						fX = fNeighbor;
+					}
 				}
-
-				// Check if it's the best solution we have ever met.
-				if (fBestNeighbor < fMin) {
-					fMin = fBestNeighbor;
-					xMin = bestNeighbor;
-				}
-
-				x = bestNeighbor;
-				fX = fBestNeighbor;
 			}
 
-			currentIteration++;
-		} while (currentIteration != this.nbMaxIterations && generatedBestNeighbor != null);
+			temperature = this.u * temperature;
+		}
 
 		return new Pair<int[], Integer>(xMin, fMin);
 	}
 
 	/**
-	 * Generate all neighbors and get the best one according to an initial state.
+	 * Generate a random neighbor according to an initial state.
 	 * 
 	 * @param initialState
 	 *            The initial state.
-	 * @return The best neighbor.
+	 * @return A neighbor.
 	 */
-	private Pair<int[], Integer> getBestNeighbor(int[] initialState) {
-		int[] bestNeighbor = null;
-		int fBestNeighbor = Integer.MAX_VALUE;
+	private Pair<int[], Integer> getNeighbor(int[] initialState) {
+		final int x = RANDOMIZER.nextInt(initialState.length);
+		int y;
+		do {
+			y = RANDOMIZER.nextInt(initialState.length);
+		} while (x == y);
 
-		int[] neighbor;
-		int fNeighbor;
-		int temp;
-		for (int x = 0; x < initialState.length; x++) {
-			for (int y = x + 1; y < initialState.length; y++) {
-				// Duplicate the initial state.
-				neighbor = initialState.clone();
+		// Duplicate the initial state.
+		final int[] neighbor = initialState.clone();
 
-				// Apply local transformation (switch two columns).
-				temp = neighbor[x];
-				neighbor[x] = neighbor[y];
-				neighbor[y] = temp;
+		// Apply local transformation (switch two columns).
+		int temp = neighbor[x];
+		neighbor[x] = neighbor[y];
+		neighbor[y] = temp;
 
-				// Check if it's the best neighbor.
-				fNeighbor = fitness(neighbor);
-				if (fNeighbor < fBestNeighbor) {
-					bestNeighbor = neighbor;
-					fBestNeighbor = fNeighbor;
-				}
-			}
-		}
-
-		return new Pair<int[], Integer>(bestNeighbor, fBestNeighbor);
+		return new Pair<int[], Integer>(neighbor, fitness(neighbor));
 	}
 }

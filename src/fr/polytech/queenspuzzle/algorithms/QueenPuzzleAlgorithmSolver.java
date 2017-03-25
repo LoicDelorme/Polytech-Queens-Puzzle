@@ -30,20 +30,6 @@ public abstract class QueenPuzzleAlgorithmSolver {
 			x = currentQueen;
 			y = queensState[currentQueen];
 
-			// Horizontal right.
-			for (queen_x = x + 1, queen_y = y; queen_x < nbQueens; queen_x++) {
-				if (queensState[queen_x] == queen_y) {
-					fitness++;
-				}
-			}
-
-			// Horizontal left.
-			for (queen_x = x - 1, queen_y = y; queen_x >= 0; queen_x--) {
-				if (queensState[queen_x] == queen_y) {
-					fitness++;
-				}
-			}
-
 			// Right up.
 			for (queen_x = x + 1, queen_y = y + 1; (queen_y < nbQueens) && (queen_x < nbQueens); queen_y++, queen_x++) {
 				if (queensState[queen_x] == queen_y) {

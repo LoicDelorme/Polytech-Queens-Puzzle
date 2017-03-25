@@ -14,12 +14,12 @@ public class TabuSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorithmSo
 	/**
 	 * The tabu list size.
 	 */
-	private int tabuListSize;
+	private final int tabuListSize;
 
 	/**
 	 * The number of maximal iterations.
 	 */
-	private int nbMaxIterations;
+	private final int nbMaxIterations;
 
 	/**
 	 * Create a tabu search queen puzzle algorithm solver.
