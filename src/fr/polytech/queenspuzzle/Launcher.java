@@ -64,13 +64,13 @@ public class Launcher {
 	 * @return The solution.
 	 */
 	private static final Pair<int[], Integer> solveUsingSimulatedAnnealingSearch() {
-		final int nbQueens = 1000;
-		final int nbMaxMoves = 300;
-		final int nbMaxTemperatureChanges = 300;
-		final int initialTemperature = 6;
-		final double u = 0.95;
+		final int nbQueens = 30;
+		final int nbMaxMoves = 2000;
+		final double p1 = 0.5;
+		final double p2 = 0.000001;
+		final double u = 0.999;
 
-		final QueenPuzzleAlgorithmSolver algorithmSolver = new SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver(nbMaxMoves, nbMaxTemperatureChanges, initialTemperature, u);
+		final QueenPuzzleAlgorithmSolver algorithmSolver = new SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver(p1, p2, nbMaxMoves, u);
 
 		final QueenPuzzleSolver solver = new QueenPuzzleProblemSolver(nbQueens, algorithmSolver);
 		final Pair<int[], Integer> result = solver.solve();

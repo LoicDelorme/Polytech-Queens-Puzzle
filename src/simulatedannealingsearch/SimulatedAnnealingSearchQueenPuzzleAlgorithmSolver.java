@@ -19,14 +19,29 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver extends QueenPuz
 	private final static SecureRandom RANDOMIZER = new SecureRandom();
 
 	/**
+	 * The number of states to generate for computing the initial temperature.
+	 */
+	private final static int NB_STATES_TO_GENERATE = 4;
+
+	/**
+	 * The number of states generations.
+	 */
+	private final static int NB_STATES_GENERATIONS = 2;
+
+	/**
+	 * The probability.
+	 */
+	private final double probability;
+
+	/**
+	 * The acceptance percentage.
+	 */
+	private final double acceptancePercentage;
+
+	/**
 	 * The number of max moves over the dimension.
 	 */
 	private final int nbMaxMoves;
-
-	/**
-	 * The number of max temperature changes.
-	 */
-	private final int nbMaxTemperatureChanges;
 
 	/**
 	 * The temperature degradation.
@@ -36,24 +51,21 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver extends QueenPuz
 	/**
 	 * Create simulated annealing search queen puzzle algorithm solver.
 	 * 
+	 * @param probability
+	 *            The probability.
+	 * @param acceptancePercentage
+	 *            The acceptance percentage.
 	 * @param nbMaxMoves
 	 *            The number of max moves over the dimension.
-	 * @param nbMaxTemperatureChanges
-	 *            The number of max temperature changes.
 	 * @param u
 	 *            The temperature degradation.
 	 */
-	public SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver(int nbMaxMoves, int nbMaxTemperatureChanges, double u) {
+	public SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver(double probability, double acceptancePercentage, int nbMaxMoves, double u) {
 		super();
+		this.probability = probability;
+		this.acceptancePercentage = acceptancePercentage;
 		this.nbMaxMoves = nbMaxMoves;
-		this.nbMaxTemperatureChanges = nbMaxTemperatureChanges;
 		this.u = u;
-	}
-
-	private int initialiazeTemperature(int nbNeighbors, int[] initialState) {
-		for (int i = 0; i < nbNeighbors; i++) {
-
-		}
 	}
 
 	@Override
@@ -64,14 +76,15 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver extends QueenPuz
 		int[] xMin = x;
 		int fMin = fX;
 
-		double temperature = initialiazeTemperature(nbNeighbors, initialState);
+		double temperature = computeInitialTemperature(initialState);
+		int nbMaxTemperatureChanges = computeNbMaxTemperatureChanges();
 		int delta;
 
 		Pair<int[], Integer> randomNeighbor = null;
 		int[] neighbor;
 		int fNeighbor;
 
-		for (int currentTemperature = 0; currentTemperature < this.nbMaxTemperatureChanges; currentTemperature++) {
+		for (int currentTemperature = 0; currentTemperature < nbMaxTemperatureChanges; currentTemperature++) {
 			for (int currentMove = 0; currentMove < this.nbMaxMoves; currentMove++) {
 				randomNeighbor = getNeighbor(x);
 				neighbor = randomNeighbor.getKey();
@@ -94,10 +107,56 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver extends QueenPuz
 				}
 			}
 
-			temperature = this.u * temperature;
+			temperature *= this.u;
 		}
 
 		return new Pair<int[], Integer>(xMin, fMin);
+	}
+
+	/**
+	 * Compute the initial temperature.
+	 * 
+	 * @param initialState
+	 *            The initial state.
+	 * 
+	 * @return The computed initial temperature.
+	 */
+	private double computeInitialTemperature(int[] initialState) {
+		int fWorseState = Integer.MIN_VALUE;
+		int fBestState = Integer.MAX_VALUE;
+
+		int[] state = null;
+		int fState;
+		Pair<int[], Integer> result = null;
+
+		for (int currentGeneratedState = 0; currentGeneratedState < NB_STATES_TO_GENERATE; currentGeneratedState++) {
+			state = initialState;
+			for (int currentGeneration = 0; currentGeneration < NB_STATES_GENERATIONS; currentGeneration++) {
+				result = getNeighbor(state);
+				state = result.getKey();
+			}
+
+			fState = result.getValue().intValue();
+
+			if (fState > fWorseState) {
+				fWorseState = fState;
+			}
+
+			if (fState < fBestState) {
+				fBestState = fState;
+			}
+		}
+
+		return (-(fWorseState - fBestState)) / Math.log(this.probability);
+	}
+
+	/**
+	 * Compute the number of maximal temperatures changes.
+	 * 
+	 * @return The computed number of maximal temperatures changes.
+	 */
+	private int computeNbMaxTemperatureChanges() {
+		return (int) Math.floor(Math.log(Math.log(this.probability) / Math.log(this.acceptancePercentage)) / Math.log(this.u));
 	}
 
 	/**

@@ -1,5 +1,7 @@
 package fr.polytech.queenspuzzle;
 
+import java.security.SecureRandom;
+
 import fr.polytech.queenspuzzle.algorithms.Pair;
 import fr.polytech.queenspuzzle.algorithms.QueenPuzzleAlgorithmSolver;
 
@@ -10,6 +12,11 @@ import fr.polytech.queenspuzzle.algorithms.QueenPuzzleAlgorithmSolver;
  * @since 1.0.0
  */
 public class QueenPuzzleProblemSolver implements QueenPuzzleSolver {
+
+	/**
+	 * The randomizer.
+	 */
+	private final static SecureRandom RANDOMIZER = new SecureRandom();
 
 	/**
 	 * The number of queens.
@@ -39,15 +46,32 @@ public class QueenPuzzleProblemSolver implements QueenPuzzleSolver {
 		this.initialState = new int[nbQueens];
 		this.queenPuzzleAlgorithmSolver = queenPuzzleAlgorithmSolver;
 
-		initializeQueens();
+		initializeQueens(this.initialState);
 	}
 
 	/**
 	 * Initialize the queens.
+	 * 
+	 * @param initialState
+	 *            The initial state.
 	 */
-	private void initializeQueens() {
+	private void initializeQueens(int[] initialState) {
 		for (int offset = 0; offset < this.nbQueens; offset++) {
 			this.initialState[offset] = offset;
+		}
+
+		int x;
+		int y;
+		int temp;
+		for (int currentPermutation = 0; currentPermutation < initialState.length; currentPermutation++) {
+			x = RANDOMIZER.nextInt(initialState.length);
+			do {
+				y = RANDOMIZER.nextInt(initialState.length);
+			} while (x == y);
+
+			temp = initialState[x];
+			initialState[x] = initialState[y];
+			initialState[y] = temp;
 		}
 	}
 
