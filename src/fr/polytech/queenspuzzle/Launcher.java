@@ -6,6 +6,7 @@ import fr.polytech.queenspuzzle.algorithms.Pair;
 import fr.polytech.queenspuzzle.algorithms.QueenPuzzleAlgorithmSolver;
 import fr.polytech.queenspuzzle.algorithms.tabusearch.TabuSearchQueenPuzzleAlgorithmSolver;
 import simulatedannealingsearch.SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver;
+import simulatedannealingsearch.SimulatedAnnealingSearchQueenPuzzleAlgorithmSolverBis;
 
 /**
  * This class represents the launcher of the application.
@@ -24,7 +25,7 @@ public class Launcher {
 	public static void main(String[] args) {
 		final long startTime = System.currentTimeMillis();
 
-		final Pair<int[], Integer> result = solveUsingSimulatedAnnealingSearch();
+		final Pair<int[], Integer> result = solveUsingSimulatedAnnealingSearchBis();
 		final int[] solution = result.getKey();
 		final int fitness = result.getValue().intValue();
 
@@ -71,6 +72,20 @@ public class Launcher {
 		final double u = 0.999;
 
 		final QueenPuzzleAlgorithmSolver algorithmSolver = new SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver(p1, p2, nbMaxMoves, u);
+
+		final QueenPuzzleSolver solver = new QueenPuzzleProblemSolver(nbQueens, algorithmSolver);
+		final Pair<int[], Integer> result = solver.solve();
+
+		return result;
+	}
+
+	private static final Pair<int[], Integer> solveUsingSimulatedAnnealingSearchBis() {
+		final int nbQueens = 500;
+		final int temperature = 2000;
+		final double threshold = 0.000000001;
+		final double u = 0.9997;
+
+		final QueenPuzzleAlgorithmSolver algorithmSolver = new SimulatedAnnealingSearchQueenPuzzleAlgorithmSolverBis(temperature, threshold, u);
 
 		final QueenPuzzleSolver solver = new QueenPuzzleProblemSolver(nbQueens, algorithmSolver);
 		final Pair<int[], Integer> result = solver.solve();
