@@ -24,9 +24,9 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver extends QueenPuz
 	private final static int NB_STATES_TO_GENERATE = 4;
 
 	/**
-	 * The number of states generations.
+	 * The number of generations by state.
 	 */
-	private final static int NB_STATES_GENERATIONS = 2;
+	private final static int NB_GENERATIONS_BY_STATE = 2;
 
 	/**
 	 * The probability.
@@ -98,6 +98,10 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver extends QueenPuz
 					if (fNeighbor < fMin) {
 						fMin = fNeighbor;
 						xMin = neighbor;
+
+						if (fMin == 0) {
+							break;
+						}
 					}
 				} else {
 					if (RANDOMIZER.nextDouble() <= Math.exp(-delta / temperature)) {
@@ -131,7 +135,7 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver extends QueenPuz
 
 		for (int currentGeneratedState = 0; currentGeneratedState < NB_STATES_TO_GENERATE; currentGeneratedState++) {
 			state = initialState;
-			for (int currentGeneration = 0; currentGeneration < NB_STATES_GENERATIONS; currentGeneration++) {
+			for (int currentGeneration = 0; currentGeneration < NB_GENERATIONS_BY_STATE; currentGeneration++) {
 				result = getNeighbor(state);
 				state = result.getKey();
 			}

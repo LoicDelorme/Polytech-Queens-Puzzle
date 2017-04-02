@@ -72,6 +72,10 @@ public class TabuSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorithmSo
 				if (fBestNeighbor < fMin) {
 					fMin = fBestNeighbor;
 					xMin = bestNeighbor;
+
+					if (fMin == 0) {
+						break;
+					}
 				}
 
 				x = bestNeighbor;
@@ -118,15 +122,15 @@ public class TabuSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorithmSo
 						bestNeighbor = neighbor;
 						fBestNeighbor = fNeighbor;
 						bestNeighborTransformation = new int[] { x, y };
+
+						if (fBestNeighbor == 0) {
+							break;
+						}
 					}
 				}
 			}
 		}
 
-		if (bestNeighbor == null) {
-			return null;
-		}
-
-		return new Pair<int[], Pair<Integer, int[]>>(bestNeighbor, new Pair<Integer, int[]>(fBestNeighbor, bestNeighborTransformation));
+		return bestNeighbor == null ? null : new Pair<int[], Pair<Integer, int[]>>(bestNeighbor, new Pair<Integer, int[]>(fBestNeighbor, bestNeighborTransformation));
 	}
 }

@@ -53,7 +53,7 @@ public class Launcher {
 
 		final QueenPuzzleAlgorithmSolver algorithmSolver = new TabuSearchQueenPuzzleAlgorithmSolver(tabuListSize, nbMaxIterations);
 
-		final QueenPuzzleSolver solver = new QueenPuzzleProblemSolver(nbQueens, algorithmSolver);
+		final QueenPuzzleSolver solver = new RandomDiagonalInitialStateQueenPuzzleProblemSolver(nbQueens, algorithmSolver);
 		final Pair<int[], Integer> result = solver.solve();
 
 		return result;
@@ -73,7 +73,7 @@ public class Launcher {
 
 		final QueenPuzzleAlgorithmSolver algorithmSolver = new SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver(p1, p2, nbMaxMoves, u);
 
-		final QueenPuzzleSolver solver = new QueenPuzzleProblemSolver(nbQueens, algorithmSolver);
+		final QueenPuzzleSolver solver = new RandomDiagonalInitialStateQueenPuzzleProblemSolver(nbQueens, algorithmSolver);
 		final Pair<int[], Integer> result = solver.solve();
 
 		return result;
@@ -87,7 +87,7 @@ public class Launcher {
 
 		final QueenPuzzleAlgorithmSolver algorithmSolver = new SimulatedAnnealingSearchQueenPuzzleAlgorithmSolverBis(temperature, threshold, u);
 
-		final QueenPuzzleSolver solver = new QueenPuzzleProblemSolver(nbQueens, algorithmSolver);
+		final QueenPuzzleSolver solver = new RandomDiagonalInitialStateQueenPuzzleProblemSolver(nbQueens, algorithmSolver);
 		final Pair<int[], Integer> result = solver.solve();
 
 		return result;

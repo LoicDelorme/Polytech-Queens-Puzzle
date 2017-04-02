@@ -78,6 +78,10 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolverBis extends Queen
 				if (fNeighbor < fMin) {
 					fMin = fNeighbor;
 					xMin = neighbor;
+
+					if (fMin == 0) {
+						break;
+					}
 				}
 			} else {
 				if (RANDOMIZER.nextDouble() <= Math.exp(-delta / temperature)) {

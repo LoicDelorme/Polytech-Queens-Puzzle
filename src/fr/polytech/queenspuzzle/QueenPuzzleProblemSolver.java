@@ -1,7 +1,5 @@
 package fr.polytech.queenspuzzle;
 
-import java.security.SecureRandom;
-
 import fr.polytech.queenspuzzle.algorithms.Pair;
 import fr.polytech.queenspuzzle.algorithms.QueenPuzzleAlgorithmSolver;
 
@@ -11,27 +9,22 @@ import fr.polytech.queenspuzzle.algorithms.QueenPuzzleAlgorithmSolver;
  * @author DELORME Loïc
  * @since 1.0.0
  */
-public class QueenPuzzleProblemSolver implements QueenPuzzleSolver {
-
-	/**
-	 * The randomizer.
-	 */
-	private final static SecureRandom RANDOMIZER = new SecureRandom();
+public abstract class QueenPuzzleProblemSolver implements QueenPuzzleSolver {
 
 	/**
 	 * The number of queens.
 	 */
-	private final int nbQueens;
+	protected final int nbQueens;
 
 	/**
 	 * The initial state (offset = column ; value = line).
 	 */
-	private final int[] initialState;
+	protected final int[] initialState;
 
 	/**
 	 * The queen puzzle algorithm solver.
 	 */
-	private final QueenPuzzleAlgorithmSolver queenPuzzleAlgorithmSolver;
+	protected final QueenPuzzleAlgorithmSolver queenPuzzleAlgorithmSolver;
 
 	/**
 	 * Create a queen puzzle problem solver.
@@ -55,25 +48,7 @@ public class QueenPuzzleProblemSolver implements QueenPuzzleSolver {
 	 * @param initialState
 	 *            The initial state.
 	 */
-	private void initializeQueens(int[] initialState) {
-		for (int offset = 0; offset < this.nbQueens; offset++) {
-			this.initialState[offset] = offset;
-		}
-
-		int x;
-		int y;
-		int temp;
-		for (int currentPermutation = 0; currentPermutation < initialState.length; currentPermutation++) {
-			x = RANDOMIZER.nextInt(initialState.length);
-			do {
-				y = RANDOMIZER.nextInt(initialState.length);
-			} while (x == y);
-
-			temp = initialState[x];
-			initialState[x] = initialState[y];
-			initialState[y] = temp;
-		}
-	}
+	protected abstract void initializeQueens(int[] initialState);
 
 	@Override
 	public Pair<int[], Integer> solve() {
