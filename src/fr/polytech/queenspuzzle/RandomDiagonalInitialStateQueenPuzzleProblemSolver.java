@@ -30,7 +30,7 @@ public class RandomDiagonalInitialStateQueenPuzzleProblemSolver extends QueenPuz
 	}
 
 	@Override
-	protected void initializeQueens(int[] initialState) {
+	protected void initializeQueens() {
 		for (int offset = 0; offset < this.nbQueens; offset++) {
 			this.initialState[offset] = offset;
 		}
@@ -38,15 +38,15 @@ public class RandomDiagonalInitialStateQueenPuzzleProblemSolver extends QueenPuz
 		int x;
 		int y;
 		int temp;
-		for (int currentPermutation = 0; currentPermutation < initialState.length; currentPermutation++) {
-			x = RANDOMIZER.nextInt(initialState.length);
+		for (int currentPermutation = 0; currentPermutation < this.initialState.length; currentPermutation++) {
+			x = RANDOMIZER.nextInt(this.initialState.length);
 			do {
-				y = RANDOMIZER.nextInt(initialState.length);
+				y = RANDOMIZER.nextInt(this.initialState.length);
 			} while (x == y);
 
-			temp = initialState[x];
-			initialState[x] = initialState[y];
-			initialState[y] = temp;
+			temp = this.initialState[x];
+			this.initialState[x] = this.initialState[y];
+			this.initialState[y] = temp;
 		}
 	}
 }

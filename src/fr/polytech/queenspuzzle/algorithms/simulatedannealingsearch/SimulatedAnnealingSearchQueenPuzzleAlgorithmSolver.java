@@ -1,4 +1,4 @@
-package simulatedannealingsearch;
+package fr.polytech.queenspuzzle.algorithms.simulatedannealingsearch;
 
 import java.security.SecureRandom;
 

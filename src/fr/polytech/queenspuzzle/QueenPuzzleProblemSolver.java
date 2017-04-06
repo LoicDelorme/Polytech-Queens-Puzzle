@@ -39,16 +39,13 @@ public abstract class QueenPuzzleProblemSolver implements QueenPuzzleSolver {
 		this.initialState = new int[nbQueens];
 		this.queenPuzzleAlgorithmSolver = queenPuzzleAlgorithmSolver;
 
-		initializeQueens(this.initialState);
+		initializeQueens();
 	}
 
 	/**
 	 * Initialize the queens.
-	 * 
-	 * @param initialState
-	 *            The initial state.
 	 */
-	protected abstract void initializeQueens(int[] initialState);
+	protected abstract void initializeQueens();
 
 	@Override
 	public Pair<int[], Integer> solve() {
