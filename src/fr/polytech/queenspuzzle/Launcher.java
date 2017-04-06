@@ -105,7 +105,7 @@ public class Launcher {
 	 * @return The solution.
 	 */
 	private static final Pair<int[], Integer> solveUsingGeneticSearch() {
-		final int nbQueens = 50;
+		final int nbQueens = 100;
 		final double crossoverAcceptanceProbability = 0.1;
 
 		final QueenPuzzleAlgorithmSolver algorithmSolver = new GeneticSearchQueenPuzzleAlgorithmSolver(nbQueens, crossoverAcceptanceProbability);

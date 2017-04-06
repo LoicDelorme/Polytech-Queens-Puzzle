@@ -24,12 +24,12 @@ public class GeneticSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorith
 	/**
 	 * The number of best solutions to get during the "best solutions reproduction".
 	 */
-	private final static int NB_BEST = 16;
+	private final static int NB_BEST = 80;
 
 	/**
 	 * The population size.
 	 */
-	private final static int POPULATION_SIZE = 20;
+	private final static int POPULATION_SIZE = 300;
 
 	/**
 	 * The number of generations.
@@ -211,7 +211,7 @@ public class GeneticSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorith
 			randomWheelValue = RANDOMIZER.nextDouble();
 
 			for (int currentState = 0; currentState < populationSize; currentState++) {
-				sum += (fitnessSum - populationFitness[currentState]) / populationFitness[currentState];
+				sum += (fitnessSum - populationFitness[currentState]) / fitnessSum;
 				if (sum >= randomWheelValue) {
 					selectedPopulation.add(population.get(currentState).clone());
 					break;
