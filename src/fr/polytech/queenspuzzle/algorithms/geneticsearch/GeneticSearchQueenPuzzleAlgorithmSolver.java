@@ -211,7 +211,7 @@ public class GeneticSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorith
 			randomWheelValue = RANDOMIZER.nextDouble();
 
 			for (int currentState = 0; currentState < populationSize; currentState++) {
-				sum += fitnessSum / populationFitness[currentState];
+				sum += (fitnessSum - populationFitness[currentState]) / populationFitness[currentState];
 				if (sum >= randomWheelValue) {
 					selectedPopulation.add(population.get(currentState).clone());
 					break;
