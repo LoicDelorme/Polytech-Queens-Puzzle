@@ -22,16 +22,6 @@ public class GeneticSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorith
 	private final static SecureRandom RANDOMIZER = new SecureRandom();
 
 	/**
-	 * The number of best solutions to get during the "best solutions reproduction".
-	 */
-	private final static int NB_BEST = 80;
-
-	/**
-	 * The population size.
-	 */
-	private final static int POPULATION_SIZE = 300;
-
-	/**
 	 * The number of generations.
 	 */
 	private final int nbGenerations;
@@ -42,17 +32,33 @@ public class GeneticSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorith
 	private final double crossoverAcceptanceProbability;
 
 	/**
+	 * The number of generations.
+	 */
+	private final int populationSize;
+
+	/**
+	 * The number of generations.
+	 */
+	private final int nbBest;
+
+	/**
 	 * Create a genetic search queen puzzle algorithm solver.
 	 * 
 	 * @param nbGenerations
 	 *            The number of generations.
 	 * @param crossoverAcceptanceProbability
 	 *            The crossover acceptance probability.
+	 * @param populationSize
+	 *            The population size.
+	 * @param nbBest
+	 *            The number of best states to get during the "best solutions reproduction" process.
 	 */
-	public GeneticSearchQueenPuzzleAlgorithmSolver(int nbGenerations, double crossoverAcceptanceProbability) {
+	public GeneticSearchQueenPuzzleAlgorithmSolver(int nbGenerations, double crossoverAcceptanceProbability, int populationSize, int nbBest) {
 		super();
 		this.nbGenerations = nbGenerations;
 		this.crossoverAcceptanceProbability = crossoverAcceptanceProbability;
+		this.populationSize = populationSize;
+		this.nbBest = nbBest;
 	}
 
 	@Override
@@ -113,7 +119,7 @@ public class GeneticSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorith
 
 	@Override
 	public Pair<int[], Integer> solve(int[] initialState) {
-		List<int[]> population = generateInitialPopulation(POPULATION_SIZE, initialState.length);
+		List<int[]> population = generateInitialPopulation(this.populationSize, initialState.length);
 
 		Pair<int[], Integer> bestSolution = new Pair<int[], Integer>(initialState, fitness(initialState));
 		getBestSolution(population, bestSolution);
@@ -121,9 +127,9 @@ public class GeneticSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorith
 		List<int[]> rouletteWheelPopulation = null;
 		for (int currentGeneration = 0; currentGeneration < this.nbGenerations; currentGeneration++) {
 			rouletteWheelPopulation = rouletteWheelReproduction(population);
-			population = bestSolutionsReproduction(NB_BEST, population);
+			population = bestSolutionsReproduction(this.nbBest, population);
 
-			for (int offset = NB_BEST; offset < POPULATION_SIZE; offset++) {
+			for (int offset = this.nbBest; offset < this.populationSize; offset++) {
 				if (RANDOMIZER.nextDouble() < this.crossoverAcceptanceProbability) {
 					population.add(crossover(rouletteWheelPopulation, initialState.length));
 				} else {
@@ -132,6 +138,10 @@ public class GeneticSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorith
 			}
 
 			getBestSolution(population, bestSolution);
+
+			if (bestSolution.getValue().intValue() == 0) {
+				break;
+			}
 		}
 
 		return bestSolution;
@@ -297,7 +307,16 @@ public class GeneticSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorith
 	 */
 	private int[] mutation(List<int[]> population, int nbQueens) {
 		int[] selectedState = population.get(RANDOMIZER.nextInt(population.size())).clone();
-		selectedState[RANDOMIZER.nextInt(nbQueens)] = RANDOMIZER.nextInt(nbQueens);
+
+		int y;
+		int x = RANDOMIZER.nextInt(nbQueens);
+		do {
+			y = RANDOMIZER.nextInt(nbQueens);
+		} while (x == y);
+
+		int temp = selectedState[x];
+		selectedState[x] = selectedState[y];
+		selectedState[y] = temp;
 
 		return selectedState;
 	}

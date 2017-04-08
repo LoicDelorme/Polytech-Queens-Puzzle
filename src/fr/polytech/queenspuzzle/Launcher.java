@@ -34,12 +34,19 @@ public class Launcher {
 		System.out.println("fitness: " + fitness);
 
 		final long stopTime = System.currentTimeMillis();
-		final long elapsedTime = stopTime - startTime;
 
-		System.out.println(elapsedTime + " ms");
-		System.out.println((elapsedTime / 1000) + " s");
-		System.out.println(((elapsedTime / 1000) / 60) + " m");
-		System.out.println((((elapsedTime / 1000) / 60) / 60) + " h");
+		long elapsedTime = stopTime - startTime;
+
+		final long hours = elapsedTime / 3600000;
+		elapsedTime -= hours * 3600000;
+
+		final long minutes = elapsedTime / 60000;
+		elapsedTime -= minutes * 60000;
+
+		final long seconds = elapsedTime / 1000;
+		elapsedTime -= seconds * 1000;
+
+		System.out.println(String.format("%dh:%dm:%ds:%dms", hours, minutes, seconds, elapsedTime));
 	}
 
 	/**
@@ -105,10 +112,13 @@ public class Launcher {
 	 * @return The solution.
 	 */
 	private static final Pair<int[], Integer> solveUsingGeneticSearch() {
-		final int nbQueens = 100;
-		final double crossoverAcceptanceProbability = 0.1;
+		final int nbQueens = 8;
+		final int nbGenerations = 100;
+		final double crossoverAcceptanceProbability = 0.2;
+		final int populationSize = 200;
+		final int nbBest = 125;
 
-		final QueenPuzzleAlgorithmSolver algorithmSolver = new GeneticSearchQueenPuzzleAlgorithmSolver(nbQueens, crossoverAcceptanceProbability);
+		final QueenPuzzleAlgorithmSolver algorithmSolver = new GeneticSearchQueenPuzzleAlgorithmSolver(nbGenerations, crossoverAcceptanceProbability, populationSize, nbBest);
 
 		final QueenPuzzleSolver solver = new RandomDiagonalInitialStateQueenPuzzleProblemSolver(nbQueens, algorithmSolver);
 		final Pair<int[], Integer> result = solver.solve();
