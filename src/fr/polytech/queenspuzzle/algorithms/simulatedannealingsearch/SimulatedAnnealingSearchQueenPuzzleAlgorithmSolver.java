@@ -2,8 +2,9 @@ package fr.polytech.queenspuzzle.algorithms.simulatedannealingsearch;
 
 import java.security.SecureRandom;
 
-import fr.polytech.queenspuzzle.algorithms.Pair;
 import fr.polytech.queenspuzzle.algorithms.QueenPuzzleAlgorithmSolver;
+import fr.polytech.queenspuzzle.solutions.AdvancedSolution;
+import fr.polytech.queenspuzzle.solutions.Solution;
 
 /**
  * This class represents a simulated annealing search queen puzzle algorithm solver.
@@ -16,30 +17,25 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver extends QueenPuz
 	/**
 	 * The randomizer.
 	 */
-	private final static SecureRandom RANDOMIZER = new SecureRandom();
+	public final static SecureRandom RANDOMIZER = new SecureRandom();
 
 	/**
 	 * The number of states to generate for computing the initial temperature.
 	 */
-	private final static int NB_STATES_TO_GENERATE = 4;
+	public static final int NB_STATES_TO_GENERATE = 10;
 
 	/**
-	 * The number of generations by state.
+	 * The acceptance probability.
 	 */
-	private final static int NB_GENERATIONS_BY_STATE = 2;
+	private final double acceptanceProbability;
 
 	/**
-	 * The probability.
+	 * The descent probability.
 	 */
-	private final double probability;
+	private final double descentProbability;
 
 	/**
-	 * The acceptance percentage.
-	 */
-	private final double acceptancePercentage;
-
-	/**
-	 * The number of max moves over the dimension.
+	 * The number of max moves per dimension.
 	 */
 	private final int nbMaxMoves;
 
@@ -51,44 +47,48 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver extends QueenPuz
 	/**
 	 * Create simulated annealing search queen puzzle algorithm solver.
 	 * 
-	 * @param probability
-	 *            The probability.
-	 * @param acceptancePercentage
-	 *            The acceptance percentage.
+	 * @param acceptanceProbability
+	 *            The acceptance probability.
+	 * @param descentProbability
+	 *            The descent probability.
 	 * @param nbMaxMoves
-	 *            The number of max moves over the dimension.
+	 *            The number of max moves per dimension.
 	 * @param u
 	 *            The temperature degradation.
 	 */
-	public SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver(double probability, double acceptancePercentage, int nbMaxMoves, double u) {
+	public SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver(double acceptanceProbability, double descentProbability, int nbMaxMoves, double u) {
 		super();
-		this.probability = probability;
-		this.acceptancePercentage = acceptancePercentage;
+		this.acceptanceProbability = acceptanceProbability;
+		this.descentProbability = descentProbability;
 		this.nbMaxMoves = nbMaxMoves;
 		this.u = u;
 	}
 
 	@Override
-	public Pair<int[], Integer> solve(int[] initialState) {
+	public AdvancedSolution solve(int[] initialState) {
+		final int worseDelta = computeWorseDelta(initialState);
+		final int initialTemperature = computeInitialTemperature(worseDelta);
+		final int nbMaxTemperature = computeNbMaxTemperature(worseDelta, initialTemperature);
+
 		int[] x = initialState;
 		int fX = fitness(x);
 
 		int[] xMin = x;
 		int fMin = fX;
 
-		double temperature = computeInitialTemperature(initialState);
-		int nbMaxTemperatureChanges = computeNbMaxTemperatureChanges();
 		int delta;
+		double temperature = initialTemperature;
 
-		Pair<int[], Integer> randomNeighbor = null;
+		Solution randomNeighbor = null;
 		int[] neighbor;
 		int fNeighbor;
 
-		for (int currentTemperature = 0; currentTemperature < nbMaxTemperatureChanges; currentTemperature++) {
+		int currentIteration = 0;
+		for (int currentTemperature = 0; currentTemperature < nbMaxTemperature; currentTemperature++) {
 			for (int currentMove = 0; currentMove < this.nbMaxMoves; currentMove++) {
-				randomNeighbor = getNeighbor(x);
-				neighbor = randomNeighbor.getKey();
-				fNeighbor = randomNeighbor.getValue().intValue();
+				randomNeighbor = getRandomNeighbor(x);
+				neighbor = randomNeighbor.getState();
+				fNeighbor = randomNeighbor.getFitness();
 
 				delta = fNeighbor - fX;
 				if (delta <= 0) {
@@ -100,6 +100,7 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver extends QueenPuz
 						xMin = neighbor;
 
 						if (fMin == 0) {
+							currentIteration++;
 							break;
 						}
 					}
@@ -112,35 +113,28 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver extends QueenPuz
 			}
 
 			temperature *= this.u;
+			currentIteration++;
 		}
 
-		return new Pair<int[], Integer>(xMin, fMin);
+		return new AdvancedSolution(xMin, fMin, currentIteration);
 	}
 
 	/**
-	 * Compute the initial temperature.
+	 * Compute the worse delta value.
 	 * 
 	 * @param initialState
 	 *            The initial state.
-	 * 
-	 * @return The computed initial temperature.
+	 * @return The worse delta value.
 	 */
-	private double computeInitialTemperature(int[] initialState) {
+	private int computeWorseDelta(int[] initialState) {
 		int fWorseState = Integer.MIN_VALUE;
 		int fBestState = Integer.MAX_VALUE;
 
-		int[] state = null;
+		Solution neighbor = null;
 		int fState;
-		Pair<int[], Integer> result = null;
-
-		for (int currentGeneratedState = 0; currentGeneratedState < NB_STATES_TO_GENERATE; currentGeneratedState++) {
-			state = initialState;
-			for (int currentGeneration = 0; currentGeneration < NB_GENERATIONS_BY_STATE; currentGeneration++) {
-				result = getNeighbor(state);
-				state = result.getKey();
-			}
-
-			fState = result.getValue().intValue();
+		for (int currentState = 0; currentState < NB_STATES_TO_GENERATE; currentState++) {
+			neighbor = getRandomNeighbor(initialState);
+			fState = neighbor.getFitness();
 
 			if (fState > fWorseState) {
 				fWorseState = fState;
@@ -151,16 +145,31 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver extends QueenPuz
 			}
 		}
 
-		return (-(fWorseState - fBestState)) / Math.log(this.probability);
+		return fWorseState - fBestState;
 	}
 
 	/**
-	 * Compute the number of maximal temperatures changes.
+	 * Compute the initial temperature.
 	 * 
+	 * @param delta
+	 *            The delta value.
+	 * @return The computed initial temperature.
+	 */
+	private int computeInitialTemperature(int delta) {
+		return (int) Math.floor(-delta / Math.log(this.acceptanceProbability));
+	}
+
+	/**
+	 * Compute the number of maximal temperature.
+	 * 
+	 * @param delta
+	 *            The delta value.
+	 * @param initialTemperature
+	 *            The initial temperature.
 	 * @return The computed number of maximal temperatures changes.
 	 */
-	private int computeNbMaxTemperatureChanges() {
-		return (int) Math.floor(Math.log(Math.log(this.probability) / Math.log(this.acceptancePercentage)) / Math.log(this.u));
+	private int computeNbMaxTemperature(int delta, int initialTemperature) {
+		return (int) Math.floor(Math.log(-delta / (initialTemperature * Math.log(this.descentProbability))) / Math.log(this.u));
 	}
 
 	/**
@@ -170,21 +179,18 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver extends QueenPuz
 	 *            The initial state.
 	 * @return A neighbor.
 	 */
-	private Pair<int[], Integer> getNeighbor(int[] initialState) {
+	private Solution getRandomNeighbor(int[] initialState) {
 		final int x = RANDOMIZER.nextInt(initialState.length);
-		int y;
-		do {
-			y = RANDOMIZER.nextInt(initialState.length);
-		} while (x == y);
+		final int y = RANDOMIZER.nextInt(initialState.length);
 
-		// Duplicate the initial state.
-		final int[] neighbor = initialState.clone();
+		// Duplicate the initial state
+		final int[] randomNeighbor = initialState.clone();
 
-		// Apply local transformation (switch two columns).
-		int temp = neighbor[x];
-		neighbor[x] = neighbor[y];
-		neighbor[y] = temp;
+		// Apply local transformation (= switch two columns)
+		final int temp = randomNeighbor[x];
+		randomNeighbor[x] = randomNeighbor[y];
+		randomNeighbor[y] = temp;
 
-		return new Pair<int[], Integer>(neighbor, fitness(neighbor));
+		return new Solution(randomNeighbor, fitness(randomNeighbor));
 	}
 }

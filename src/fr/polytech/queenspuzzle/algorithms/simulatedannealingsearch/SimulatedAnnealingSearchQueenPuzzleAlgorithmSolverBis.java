@@ -2,8 +2,9 @@ package fr.polytech.queenspuzzle.algorithms.simulatedannealingsearch;
 
 import java.security.SecureRandom;
 
-import fr.polytech.queenspuzzle.algorithms.Pair;
 import fr.polytech.queenspuzzle.algorithms.QueenPuzzleAlgorithmSolver;
+import fr.polytech.queenspuzzle.solutions.AdvancedSolution;
+import fr.polytech.queenspuzzle.solutions.Solution;
 
 /**
  * This class represents a simulated annealing search queen puzzle algorithm solver bis.
@@ -16,12 +17,12 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolverBis extends Queen
 	/**
 	 * The randomizer.
 	 */
-	private final static SecureRandom RANDOMIZER = new SecureRandom();
+	public final static SecureRandom RANDOMIZER = new SecureRandom();
 
 	/**
-	 * The temperature.
+	 * The initial temperature.
 	 */
-	private final double temperature;
+	private final int initialTemperature;
 
 	/**
 	 * The threshold.
@@ -34,41 +35,42 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolverBis extends Queen
 	private final double u;
 
 	/**
-	 * Create simulated annealing search queen puzzle algorithm solver.
+	 * Create simulated annealing search queen puzzle algorithm solver bis.
 	 * 
-	 * @param temperature
-	 *            The temperature.
+	 * @param initialTemperature
+	 *            The initial temperature.
 	 * @param threshold
 	 *            The threshold.
 	 * @param u
 	 *            The temperature degradation.
 	 */
-	public SimulatedAnnealingSearchQueenPuzzleAlgorithmSolverBis(double temperature, double threshold, double u) {
+	public SimulatedAnnealingSearchQueenPuzzleAlgorithmSolverBis(int initialTemperature, double threshold, double u) {
 		super();
-		this.temperature = temperature;
+		this.initialTemperature = initialTemperature;
 		this.threshold = threshold;
 		this.u = u;
 	}
 
 	@Override
-	public Pair<int[], Integer> solve(int[] initialState) {
+	public AdvancedSolution solve(int[] initialState) {
 		int[] x = initialState;
 		int fX = fitness(x);
 
 		int[] xMin = x;
 		int fMin = fX;
 
-		double temperature = this.temperature;
+		double temperature = this.initialTemperature;
 		int delta;
 
-		Pair<int[], Integer> randomNeighbor = null;
+		Solution randomNeighbor = null;
 		int[] neighbor;
 		int fNeighbor;
 
+		int currentIteration = 0;
 		while (temperature > this.threshold) {
-			randomNeighbor = getNeighbor(x);
-			neighbor = randomNeighbor.getKey();
-			fNeighbor = randomNeighbor.getValue().intValue();
+			randomNeighbor = getRandomNeighbor(x);
+			neighbor = randomNeighbor.getState();
+			fNeighbor = randomNeighbor.getFitness();
 
 			delta = fNeighbor - fX;
 			if (delta <= 0) {
@@ -80,6 +82,7 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolverBis extends Queen
 					xMin = neighbor;
 
 					if (fMin == 0) {
+						currentIteration++;
 						break;
 					}
 				}
@@ -91,9 +94,10 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolverBis extends Queen
 			}
 
 			temperature *= this.u;
+			currentIteration++;
 		}
 
-		return new Pair<int[], Integer>(xMin, fMin);
+		return new AdvancedSolution(xMin, fMin, currentIteration);
 	}
 
 	/**
@@ -101,23 +105,20 @@ public class SimulatedAnnealingSearchQueenPuzzleAlgorithmSolverBis extends Queen
 	 * 
 	 * @param initialState
 	 *            The initial state.
-	 * @return A neighbor.
+	 * @return A random neighbor.
 	 */
-	private Pair<int[], Integer> getNeighbor(int[] initialState) {
+	private Solution getRandomNeighbor(int[] initialState) {
 		final int x = RANDOMIZER.nextInt(initialState.length);
-		int y;
-		do {
-			y = RANDOMIZER.nextInt(initialState.length);
-		} while (x == y);
+		final int y = RANDOMIZER.nextInt(initialState.length);
 
-		// Duplicate the initial state.
-		final int[] neighbor = initialState.clone();
+		// Duplicate the initial state
+		final int[] randomNeighbor = initialState.clone();
 
-		// Apply local transformation (switch two columns).
-		int temp = neighbor[x];
-		neighbor[x] = neighbor[y];
-		neighbor[y] = temp;
+		// Apply local transformation (= switch two columns)
+		final int temp = randomNeighbor[x];
+		randomNeighbor[x] = randomNeighbor[y];
+		randomNeighbor[y] = temp;
 
-		return new Pair<int[], Integer>(neighbor, fitness(neighbor));
+		return new Solution(randomNeighbor, fitness(randomNeighbor));
 	}
 }

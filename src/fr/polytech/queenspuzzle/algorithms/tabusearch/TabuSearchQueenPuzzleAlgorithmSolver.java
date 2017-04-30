@@ -1,7 +1,8 @@
 package fr.polytech.queenspuzzle.algorithms.tabusearch;
 
-import fr.polytech.queenspuzzle.algorithms.Pair;
 import fr.polytech.queenspuzzle.algorithms.QueenPuzzleAlgorithmSolver;
+import fr.polytech.queenspuzzle.solutions.AdvancedSolution;
+import fr.polytech.queenspuzzle.solutions.LocalTabuSearchSolution;
 
 /**
  * This class represents a tabu search queen puzzle algorithm solver.
@@ -17,7 +18,7 @@ public class TabuSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorithmSo
 	private final int tabuListSize;
 
 	/**
-	 * The number of maximal iterations.
+	 * The number of maximal allowed iterations.
 	 */
 	private final int nbMaxIterations;
 
@@ -27,7 +28,7 @@ public class TabuSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorithmSo
 	 * @param tabuListSize
 	 *            The tabu list size.
 	 * @param nbMaxIterations
-	 *            The number of maximal iterations.
+	 *            The number of maximal allowed iterations.
 	 */
 	public TabuSearchQueenPuzzleAlgorithmSolver(int tabuListSize, int nbMaxIterations) {
 		super();
@@ -36,7 +37,7 @@ public class TabuSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorithmSo
 	}
 
 	@Override
-	public Pair<int[], Integer> solve(int[] initialState) {
+	public AdvancedSolution solve(int[] initialState) {
 		int[] x = initialState;
 		int fX = fitness(x);
 
@@ -47,34 +48,35 @@ public class TabuSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorithmSo
 		int currentIteration = 0;
 		final TabuList tabuList = new TabuList(initialState.length, this.tabuListSize);
 
-		Pair<int[], Pair<Integer, int[]>> generatedBestNeighbor = null;
+		LocalTabuSearchSolution generatedBestNeighbor = null;
 		int[] bestNeighbor;
 		int fBestNeighbor;
 		int[] bestNeighborTransformation;
 
 		do {
-			// Get the best neighbor.
+			// Get the best neighbor
 			generatedBestNeighbor = getBestNeighbor(x, tabuList);
 
+			// Check if it exists
 			if (generatedBestNeighbor != null) {
-				// Recover neighbor data.
-				bestNeighbor = generatedBestNeighbor.getKey();
-				fBestNeighbor = generatedBestNeighbor.getValue().getKey().intValue();
-				bestNeighborTransformation = generatedBestNeighbor.getValue().getValue();
+				// Recover best neighbor data
+				bestNeighbor = generatedBestNeighbor.getState();
+				fBestNeighbor = generatedBestNeighbor.getFitness();
+				bestNeighborTransformation = generatedBestNeighbor.getTransformation();
 
-				// Compute the delta value.
+				// Compute the delta value
 				delta = fBestNeighbor - fX;
 				if (delta >= 0) {
-					tabuList.addElementaryTransformation(bestNeighborTransformation);
+					tabuList.addInvalidTransformation(bestNeighborTransformation);
 				}
 
-				// Check if it's the best solution we have ever met.
+				// Check if it's the best solution we have ever met
 				if (fBestNeighbor < fMin) {
 					fMin = fBestNeighbor;
 					xMin = bestNeighbor;
 
 					if (fMin == 0) {
-						break;
+						return new AdvancedSolution(xMin, fMin, ++currentIteration);
 					}
 				}
 
@@ -85,7 +87,7 @@ public class TabuSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorithmSo
 			currentIteration++;
 		} while (currentIteration != this.nbMaxIterations && generatedBestNeighbor != null);
 
-		return new Pair<int[], Integer>(xMin, fMin);
+		return new AdvancedSolution(xMin, fMin, currentIteration);
 	}
 
 	/**
@@ -97,7 +99,7 @@ public class TabuSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorithmSo
 	 *            The tabu list.
 	 * @return The best neighbor.
 	 */
-	private Pair<int[], Pair<Integer, int[]>> getBestNeighbor(int[] initialState, TabuList tabuList) {
+	private LocalTabuSearchSolution getBestNeighbor(int[] initialState, TabuList tabuList) {
 		int[] bestNeighbor = null;
 		int fBestNeighbor = Integer.MAX_VALUE;
 		int[] bestNeighborTransformation = null;
@@ -108,15 +110,15 @@ public class TabuSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorithmSo
 		for (int x = 0; x < initialState.length; x++) {
 			for (int y = x + 1; y < initialState.length; y++) {
 				if (tabuList.isValidTransformation(x, y)) {
-					// Duplicate the initial state.
+					// Duplicate the initial state
 					neighbor = initialState.clone();
 
-					// Apply local transformation (switch two columns).
+					// Apply local transformation (= switch two columns)
 					temp = neighbor[x];
 					neighbor[x] = neighbor[y];
 					neighbor[y] = temp;
 
-					// Check if it's the best neighbor.
+					// Check if it's the best neighbor we have ever met
 					fNeighbor = fitness(neighbor);
 					if (fNeighbor < fBestNeighbor) {
 						bestNeighbor = neighbor;
@@ -124,13 +126,13 @@ public class TabuSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorithmSo
 						bestNeighborTransformation = new int[] { x, y };
 
 						if (fBestNeighbor == 0) {
-							break;
+							return new LocalTabuSearchSolution(bestNeighbor, fBestNeighbor, bestNeighborTransformation);
 						}
 					}
 				}
 			}
 		}
 
-		return bestNeighbor == null ? null : new Pair<int[], Pair<Integer, int[]>>(bestNeighbor, new Pair<Integer, int[]>(fBestNeighbor, bestNeighborTransformation));
+		return bestNeighbor == null ? null : new LocalTabuSearchSolution(bestNeighbor, fBestNeighbor, bestNeighborTransformation);
 	}
 }

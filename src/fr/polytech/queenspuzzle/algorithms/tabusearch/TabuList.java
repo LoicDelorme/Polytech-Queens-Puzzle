@@ -16,7 +16,7 @@ public class TabuList {
 	/**
 	 * The default insertion offset.
 	 */
-	private static final int DEFAULT_INSERTION_OFFSET = 0;
+	public static final int DEFAULT_INSERTION_OFFSET = 0;
 
 	/**
 	 * The size of the tabu list.
@@ -29,9 +29,9 @@ public class TabuList {
 	private final List<int[]> forbiddenTransformations;
 
 	/**
-	 * The tabu list.
+	 * The locked elements.
 	 */
-	private final Map<Integer, List<Integer>> tabuList;
+	private final Map<Integer, List<Integer>> lockedElements;
 
 	/**
 	 * Create a tabu list.
@@ -44,62 +44,67 @@ public class TabuList {
 	public TabuList(int nbQueens, int size) {
 		this.size = size;
 		this.forbiddenTransformations = new ArrayList<int[]>(size + 1);
-		this.tabuList = new TreeMap<Integer, List<Integer>>();
+		this.lockedElements = new TreeMap<Integer, List<Integer>>();
 
-		initializeTabuList(nbQueens);
+		initializeLockedElements(nbQueens);
 	}
 
 	/**
-	 * Initialize the tabu list.
+	 * Initialize the locked elements tree.
 	 * 
 	 * @param nbQueens
 	 *            The number of queens.
 	 */
-	private void initializeTabuList(int nbQueens) {
-		for (int offset = 0; offset < nbQueens; offset++) {
-			this.tabuList.put(offset, new ArrayList<Integer>(nbQueens));
+	private void initializeLockedElements(int nbQueens) {
+		for (int index = 0; index < nbQueens; index++) {
+			this.lockedElements.put(index, new ArrayList<Integer>(nbQueens));
 		}
 	}
 
 	/**
-	 * Check if the transformation is valid.
+	 * Check if a transformation is valid according to the current locked elements.
 	 * 
 	 * @param x
 	 *            The X position.
 	 * @param y
 	 *            The Y position.
-	 * @return True if it is a valid elementary transformation, else False.
+	 * @return True if it's a valid transformation, else False.
 	 */
 	public boolean isValidTransformation(int x, int y) {
-		return !(this.tabuList.get(x).contains(y) && this.tabuList.get(y).contains(x));
+		return !(this.lockedElements.get(x).contains(y) && this.lockedElements.get(y).contains(x));
 	}
 
 	/**
-	 * Add a new elementary transformation.
+	 * Add an invalid transformation.
 	 * 
-	 * @param transformation
-	 *            The new elementary transformation.
+	 * @param invalidTransformation
+	 *            The invalid transformation.
 	 */
-	public void addElementaryTransformation(int[] transformation) {
-		this.tabuList.get(transformation[0]).add(Integer.valueOf(transformation[1]));
-		this.tabuList.get(transformation[1]).add(Integer.valueOf(transformation[0]));
+	public void addInvalidTransformation(int[] invalidTransformation) {
+		final Integer x = Integer.valueOf(invalidTransformation[0]);
+		final Integer y = Integer.valueOf(invalidTransformation[1]);
 
-		this.forbiddenTransformations.add(DEFAULT_INSERTION_OFFSET, transformation);
+		this.lockedElements.get(x).add(y);
+		this.lockedElements.get(y).add(x);
+
+		this.forbiddenTransformations.add(DEFAULT_INSERTION_OFFSET, invalidTransformation);
 		if (this.forbiddenTransformations.size() > this.size) {
-			removeOldElementaryTransformations();
+			removeOldInvalidTransformation();
 		}
 	}
 
 	/**
-	 * Remove the old elementary transformations.
+	 * Remove the old invalid transformation.
 	 */
-	private void removeOldElementaryTransformations() {
-		final List<int[]> oldForbiddenTransformations = this.forbiddenTransformations.subList(this.size, this.forbiddenTransformations.size());
-		for (int[] oldForbiddenTransformation : oldForbiddenTransformations) {
-			this.tabuList.get(oldForbiddenTransformation[0]).remove(Integer.valueOf(oldForbiddenTransformation[1]));
-			this.tabuList.get(oldForbiddenTransformation[1]).remove(Integer.valueOf(oldForbiddenTransformation[0]));
-		}
+	private void removeOldInvalidTransformation() {
+		final int[] oldInvalidTransformation = this.forbiddenTransformations.get(this.size);
 
-		oldForbiddenTransformations.clear();
+		final Integer x = Integer.valueOf(oldInvalidTransformation[0]);
+		final Integer y = Integer.valueOf(oldInvalidTransformation[1]);
+
+		this.lockedElements.get(x).remove(y);
+		this.lockedElements.get(y).remove(x);
+
+		this.forbiddenTransformations.remove(this.size);
 	}
 }

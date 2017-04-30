@@ -1,5 +1,7 @@
 package fr.polytech.queenspuzzle.algorithms;
 
+import fr.polytech.queenspuzzle.solutions.AdvancedSolution;
+
 /**
  * This class represents a queen puzzle algorithm solver.
  *
@@ -66,8 +68,8 @@ public abstract class QueenPuzzleAlgorithmSolver {
 	 * Solve the queen puzzle problem with an efficient algorithm.
 	 * 
 	 * @param initialState
-	 *            The initial state.
-	 * @return A pair which contains the solution with its corresponding fitness value.
+	 *            An initial state.
+	 * @return An advanced solution which contains for a given state its associated fitness value with the number of iterations to get it.
 	 */
-	public abstract Pair<int[], Integer> solve(int[] initialState);
+	public abstract AdvancedSolution solve(int[] initialState);
 }

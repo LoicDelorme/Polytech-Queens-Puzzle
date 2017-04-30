@@ -1,6 +1,6 @@
 package fr.polytech.queenspuzzle;
 
-import fr.polytech.queenspuzzle.algorithms.Pair;
+import fr.polytech.queenspuzzle.solutions.AdvancedSolution;
 
 /**
  * This interface represents a queen puzzle solver.
@@ -13,7 +13,7 @@ public interface QueenPuzzleSolver {
 	/**
 	 * Solve a queen puzzle problem.
 	 * 
-	 * @return A pair which contains a solution with its corresponding fitness value.
+	 * @return An advanced solution which contains for a given state its associated fitness value with the number of iterations to get it.
 	 */
-	public Pair<int[], Integer> solve();
+	public AdvancedSolution solve();
 }

@@ -1,7 +1,7 @@
 package fr.polytech.queenspuzzle;
 
-import fr.polytech.queenspuzzle.algorithms.Pair;
 import fr.polytech.queenspuzzle.algorithms.QueenPuzzleAlgorithmSolver;
+import fr.polytech.queenspuzzle.solutions.AdvancedSolution;
 
 /**
  * This class represents a queen puzzle problem solver.
@@ -39,16 +39,16 @@ public abstract class QueenPuzzleProblemSolver implements QueenPuzzleSolver {
 		this.initialState = new int[nbQueens];
 		this.queenPuzzleAlgorithmSolver = queenPuzzleAlgorithmSolver;
 
-		initializeQueens();
+		initializeInitialState();
 	}
 
 	/**
-	 * Initialize the queens.
+	 * Initialize the initial state.
 	 */
-	protected abstract void initializeQueens();
+	protected abstract void initializeInitialState();
 
 	@Override
-	public Pair<int[], Integer> solve() {
+	public AdvancedSolution solve() {
 		return this.queenPuzzleAlgorithmSolver.solve(this.initialState);
 	}
 }

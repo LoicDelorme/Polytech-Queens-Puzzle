@@ -2,12 +2,12 @@ package fr.polytech.queenspuzzle;
 
 import java.util.Arrays;
 
-import fr.polytech.queenspuzzle.algorithms.Pair;
 import fr.polytech.queenspuzzle.algorithms.QueenPuzzleAlgorithmSolver;
 import fr.polytech.queenspuzzle.algorithms.geneticsearch.GeneticSearchQueenPuzzleAlgorithmSolver;
 import fr.polytech.queenspuzzle.algorithms.simulatedannealingsearch.SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver;
 import fr.polytech.queenspuzzle.algorithms.simulatedannealingsearch.SimulatedAnnealingSearchQueenPuzzleAlgorithmSolverBis;
 import fr.polytech.queenspuzzle.algorithms.tabusearch.TabuSearchQueenPuzzleAlgorithmSolver;
+import fr.polytech.queenspuzzle.solutions.AdvancedSolution;
 
 /**
  * This class represents the launcher of the application.
@@ -26,12 +26,13 @@ public class Launcher {
 	public static void main(String[] args) {
 		final long startTime = System.currentTimeMillis();
 
-		final Pair<int[], Integer> result = solveUsingGeneticSearch();
-		final int[] solution = result.getKey();
-		final int fitness = result.getValue().intValue();
-
-		System.out.println("solution: " + Arrays.toString(solution));
-		System.out.println("fitness: " + fitness);
+		final AdvancedSolution result = solveUsingTabuSearch();
+		// final AdvancedSolution result = solveUsingSimulatedAnnealingSearch();
+		// final AdvancedSolution result = solveUsingSimulatedAnnealingSearchBis();
+		// final AdvancedSolution result = solveUsingGeneticSearch();
+		System.out.println("Solution: " + Arrays.toString(result.getState()));
+		System.out.println("Fitness: " + result.getFitness());
+		System.out.println("Nb iterations: " + result.getNbIterations());
 
 		final long stopTime = System.currentTimeMillis();
 
@@ -54,17 +55,15 @@ public class Launcher {
 	 * 
 	 * @return The solution.
 	 */
-	private static final Pair<int[], Integer> solveUsingTabuSearch() {
-		final int nbQueens = 100;
-		final int tabuListSize = 10;
-		final int nbMaxIterations = 175;
+	private static final AdvancedSolution solveUsingTabuSearch() {
+		final int nbQueens = 300;
+		final int tabuListSize = 15;
+		final int nbMaxIterations = 200;
 
-		final QueenPuzzleAlgorithmSolver algorithmSolver = new TabuSearchQueenPuzzleAlgorithmSolver(tabuListSize, nbMaxIterations);
+		final QueenPuzzleAlgorithmSolver algorithm = new TabuSearchQueenPuzzleAlgorithmSolver(tabuListSize, nbMaxIterations);
+		final QueenPuzzleSolver solver = new RandomDiagonalInitialStateQueenPuzzleProblemSolver(nbQueens, algorithm);
 
-		final QueenPuzzleSolver solver = new RandomDiagonalInitialStateQueenPuzzleProblemSolver(nbQueens, algorithmSolver);
-		final Pair<int[], Integer> result = solver.solve();
-
-		return result;
+		return solver.solve();
 	}
 
 	/**
@@ -72,19 +71,17 @@ public class Launcher {
 	 * 
 	 * @return The solution.
 	 */
-	private static final Pair<int[], Integer> solveUsingSimulatedAnnealingSearch() {
-		final int nbQueens = 30;
-		final int nbMaxMoves = 2000;
-		final double p1 = 0.5;
-		final double p2 = 0.000001;
-		final double u = 0.999;
+	private static final AdvancedSolution solveUsingSimulatedAnnealingSearch() {
+		final int nbQueens = 8;
+		final int nbMaxMoves = 6;
+		final double acceptanceProbability = 0.5;
+		final double descentProbability = 0.001;
+		final double u = 0.95;
 
-		final QueenPuzzleAlgorithmSolver algorithmSolver = new SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver(p1, p2, nbMaxMoves, u);
+		final QueenPuzzleAlgorithmSolver algorithm = new SimulatedAnnealingSearchQueenPuzzleAlgorithmSolver(acceptanceProbability, descentProbability, nbMaxMoves, u);
+		final QueenPuzzleSolver solver = new RandomDiagonalInitialStateQueenPuzzleProblemSolver(nbQueens, algorithm);
 
-		final QueenPuzzleSolver solver = new RandomDiagonalInitialStateQueenPuzzleProblemSolver(nbQueens, algorithmSolver);
-		final Pair<int[], Integer> result = solver.solve();
-
-		return result;
+		return solver.solve();
 	}
 
 	/**
@@ -92,18 +89,16 @@ public class Launcher {
 	 * 
 	 * @return The solution.
 	 */
-	private static final Pair<int[], Integer> solveUsingSimulatedAnnealingSearchBis() {
-		final int nbQueens = 500;
-		final int temperature = 2000;
-		final double threshold = 0.000000001;
+	private static final AdvancedSolution solveUsingSimulatedAnnealingSearchBis() {
+		final int nbQueens = 8;
+		final int temperature = 7;
+		final double threshold = 0.000001;
 		final double u = 0.9997;
 
-		final QueenPuzzleAlgorithmSolver algorithmSolver = new SimulatedAnnealingSearchQueenPuzzleAlgorithmSolverBis(temperature, threshold, u);
+		final QueenPuzzleAlgorithmSolver algorithm = new SimulatedAnnealingSearchQueenPuzzleAlgorithmSolverBis(temperature, threshold, u);
+		final QueenPuzzleSolver solver = new RandomDiagonalInitialStateQueenPuzzleProblemSolver(nbQueens, algorithm);
 
-		final QueenPuzzleSolver solver = new RandomDiagonalInitialStateQueenPuzzleProblemSolver(nbQueens, algorithmSolver);
-		final Pair<int[], Integer> result = solver.solve();
-
-		return result;
+		return solver.solve();
 	}
 
 	/**
@@ -111,18 +106,16 @@ public class Launcher {
 	 * 
 	 * @return The solution.
 	 */
-	private static final Pair<int[], Integer> solveUsingGeneticSearch() {
-		final int nbQueens = 8;
-		final int nbGenerations = 100;
-		final double crossoverAcceptanceProbability = 0.2;
-		final int populationSize = 200;
-		final int nbBest = 125;
+	private static final AdvancedSolution solveUsingGeneticSearch() {
+		final int nbQueens = 100;
+		final int nbGenerations = 1000;
+		final double crossoverAcceptanceProbability = 0.800;
+		final int populationSize = 100;
+		final int nbBest = 35;
 
-		final QueenPuzzleAlgorithmSolver algorithmSolver = new GeneticSearchQueenPuzzleAlgorithmSolver(nbGenerations, crossoverAcceptanceProbability, populationSize, nbBest);
+		final QueenPuzzleAlgorithmSolver algorithm = new GeneticSearchQueenPuzzleAlgorithmSolver(nbGenerations, crossoverAcceptanceProbability, populationSize, nbBest);
+		final QueenPuzzleSolver solver = new RandomDiagonalInitialStateQueenPuzzleProblemSolver(nbQueens, algorithm);
 
-		final QueenPuzzleSolver solver = new RandomDiagonalInitialStateQueenPuzzleProblemSolver(nbQueens, algorithmSolver);
-		final Pair<int[], Integer> result = solver.solve();
-
-		return result;
+		return solver.solve();
 	}
 }

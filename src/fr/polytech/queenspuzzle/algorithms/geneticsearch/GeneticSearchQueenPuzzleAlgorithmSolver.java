@@ -5,8 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import fr.polytech.queenspuzzle.algorithms.Pair;
 import fr.polytech.queenspuzzle.algorithms.QueenPuzzleAlgorithmSolver;
+import fr.polytech.queenspuzzle.solutions.AdvancedSolution;
+import fr.polytech.queenspuzzle.solutions.Solution;
 
 /**
  * This class represents a genetic search queen puzzle algorithm solver.
@@ -19,7 +20,7 @@ public class GeneticSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorith
 	/**
 	 * The randomizer.
 	 */
-	private final static SecureRandom RANDOMIZER = new SecureRandom();
+	public final static SecureRandom RANDOMIZER = new SecureRandom();
 
 	/**
 	 * The number of generations.
@@ -32,14 +33,14 @@ public class GeneticSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorith
 	private final double crossoverAcceptanceProbability;
 
 	/**
-	 * The number of generations.
+	 * The population size.
 	 */
 	private final int populationSize;
 
 	/**
-	 * The number of generations.
+	 * The number of best states to get during the reproduction process.
 	 */
-	private final int nbBest;
+	private final int nbBestStates;
 
 	/**
 	 * Create a genetic search queen puzzle algorithm solver.
@@ -50,15 +51,15 @@ public class GeneticSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorith
 	 *            The crossover acceptance probability.
 	 * @param populationSize
 	 *            The population size.
-	 * @param nbBest
-	 *            The number of best states to get during the "best solutions reproduction" process.
+	 * @param nbBestStates
+	 *            The number of best states to get during the reproduction process.
 	 */
-	public GeneticSearchQueenPuzzleAlgorithmSolver(int nbGenerations, double crossoverAcceptanceProbability, int populationSize, int nbBest) {
+	public GeneticSearchQueenPuzzleAlgorithmSolver(int nbGenerations, double crossoverAcceptanceProbability, int populationSize, int nbBestStates) {
 		super();
 		this.nbGenerations = nbGenerations;
 		this.crossoverAcceptanceProbability = crossoverAcceptanceProbability;
 		this.populationSize = populationSize;
-		this.nbBest = nbBest;
+		this.nbBestStates = nbBestStates;
 	}
 
 	@Override
@@ -118,58 +119,60 @@ public class GeneticSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorith
 	}
 
 	@Override
-	public Pair<int[], Integer> solve(int[] initialState) {
-		List<int[]> population = generateInitialPopulation(this.populationSize, initialState.length);
+	public AdvancedSolution solve(int[] initialState) {
+		final Solution bestSolution = new Solution(null, Integer.MAX_VALUE);
 
-		Pair<int[], Integer> bestSolution = new Pair<int[], Integer>(initialState, fitness(initialState));
+		List<int[]> population = generateInitialPopulation(this.populationSize, initialState.length);
 		getBestSolution(population, bestSolution);
 
 		List<int[]> rouletteWheelPopulation = null;
-		for (int currentGeneration = 0; currentGeneration < this.nbGenerations; currentGeneration++) {
+		int currentGeneration;
+		for (currentGeneration = 0; currentGeneration < this.nbGenerations; currentGeneration++) {
 			rouletteWheelPopulation = rouletteWheelReproduction(population);
-			population = bestSolutionsReproduction(this.nbBest, population);
+			population = bestSolutionsReproduction(this.nbBestStates, population);
 
-			for (int offset = this.nbBest; offset < this.populationSize; offset++) {
+			for (int index = this.nbBestStates; index < this.populationSize; index++) {
 				if (RANDOMIZER.nextDouble() < this.crossoverAcceptanceProbability) {
-					population.add(crossover(rouletteWheelPopulation, initialState.length));
+					population.add(crossover(rouletteWheelPopulation));
 				} else {
-					population.add(mutation(rouletteWheelPopulation, initialState.length));
+					population.add(mutation(rouletteWheelPopulation));
 				}
 			}
 
 			getBestSolution(population, bestSolution);
 
-			if (bestSolution.getValue().intValue() == 0) {
+			if (bestSolution.getFitness() == 0) {
+				currentGeneration++;
 				break;
 			}
 		}
 
-		return bestSolution;
+		return new AdvancedSolution(bestSolution.getState(), bestSolution.getFitness(), currentGeneration);
 	}
 
 	/**
-	 * Get the best solution of a given population.
+	 * Get the best solution from a given population.
 	 * 
 	 * @param population
 	 *            The population.
 	 * @param bestSolution
 	 *            The current best solution which will be overriden or not.
 	 */
-	private void getBestSolution(List<int[]> population, Pair<int[], Integer> bestSolution) {
-		int[] xMin = bestSolution.getKey();
-		int fMin = bestSolution.getValue().intValue();
+	private void getBestSolution(List<int[]> population, Solution bestSolution) {
+		int[] xMin = bestSolution.getState();
+		int fMin = bestSolution.getFitness();
 
 		int fitness;
 		for (int[] state : population) {
 			fitness = fitness(state);
 			if (fitness < fMin) {
-				xMin = state;
+				xMin = state.clone();
 				fMin = fitness;
 			}
 		}
 
-		bestSolution.setKey(xMin);
-		bestSolution.setValue(fMin);
+		bestSolution.setState(xMin);
+		bestSolution.setFitness(fMin);
 	}
 
 	/**
@@ -187,8 +190,8 @@ public class GeneticSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorith
 		int[] state = null;
 		for (int currentState = 0; currentState < populationSize; currentState++) {
 			state = new int[nbQueens];
-			for (int offset = 0; offset < nbQueens; offset++) {
-				state[offset] = RANDOMIZER.nextInt(nbQueens);
+			for (int index = 0; index < nbQueens; index++) {
+				state[index] = RANDOMIZER.nextInt(nbQueens);
 			}
 
 			population.add(state);
@@ -198,126 +201,114 @@ public class GeneticSearchQueenPuzzleAlgorithmSolver extends QueenPuzzleAlgorith
 	}
 
 	/**
-	 * Apply the roulette wheel reproduction on a given population.
+	 * Apply a roulette wheel reproduction on states from a given population.
 	 * 
 	 * @param population
 	 *            The population.
-	 * @return The list of selected state.
+	 * @return The list of selected states.
 	 */
 	private List<int[]> rouletteWheelReproduction(List<int[]> population) {
-		final List<int[]> selectedPopulation = new ArrayList<int[]>();
-
-		int populationSize = population.size();
-		double fitnessSum = 0;
-		double[] populationFitness = new double[populationSize];
-		for (int offset = 0; offset < populationSize; offset++) {
-			populationFitness[offset] = fitness(population.get(offset));
-			fitnessSum += populationFitness[offset];
+		int fitnessSum = 0;
+		final int populationSize = population.size();
+		final int[] populationFitness = new int[populationSize];
+		for (int index = 0; index < populationSize; index++) {
+			populationFitness[index] = fitness(population.get(index));
+			fitnessSum += populationFitness[index];
 		}
 
-		double sum = 0;
-		double randomWheelValue;
-		for (int offset = 0; offset < populationSize; offset++) {
-			randomWheelValue = RANDOMIZER.nextDouble();
+		final List<int[]> selectedStates = new ArrayList<int[]>();
+
+		int sum = 0;
+		int randomWheelValue;
+		for (int index = 0; index < populationSize; index++) {
+			randomWheelValue = RANDOMIZER.nextInt(fitnessSum);
 
 			for (int currentState = 0; currentState < populationSize; currentState++) {
-				sum += (fitnessSum - populationFitness[currentState]) / fitnessSum;
+				sum += fitnessSum - populationFitness[currentState];
 				if (sum >= randomWheelValue) {
-					selectedPopulation.add(population.get(currentState).clone());
+					selectedStates.add(population.get(currentState).clone());
 					break;
 				}
 			}
 		}
 
-		return selectedPopulation;
+		return selectedStates;
 	}
 
 	/**
 	 * Get the X best solutions into a given population.
 	 * 
-	 * @param nbBest
+	 * @param nbBestStates
 	 *            The number of best solutions to get.
 	 * @param population
 	 *            The population.
 	 * @return The X best solutions.
 	 */
-	private List<int[]> bestSolutionsReproduction(int nbBest, List<int[]> population) {
+	private List<int[]> bestSolutionsReproduction(int nbBestStates, List<int[]> population) {
 		return population.stream() //
-		        .map(state -> new Pair<int[], Integer>(state, fitness(state))) //
-		        .sorted((pairOne, pairTwo) -> pairOne.getValue().intValue() - pairTwo.getValue().intValue()) //
-		        .limit(nbBest) //
-		        .map(pair -> pair.getKey()) //
+		        .map(state -> new Solution(state, fitness(state))) //
+		        .sorted((solutionOne, solutionTwo) -> solutionOne.getFitness() - solutionTwo.getFitness()) //
+		        .limit(nbBestStates) //
+		        .map(solution -> solution.getState()) //
 		        .collect(Collectors.toList());
 	}
 
 	/**
-	 * Apply the crossover operation on a given population.
+	 * Apply a crossover operation on states from a given population.
 	 * 
 	 * @param population
 	 *            The population.
-	 * @param nbQueens
-	 *            The number of queens.
 	 * @return The best state.
 	 */
-	private int[] crossover(List<int[]> population, int nbQueens) {
+	private int[] crossover(List<int[]> population) {
+		final int size = population.get(0).length;
+
 		int[] xMin = null;
 		int fMin = Integer.MAX_VALUE;
 
-		int[] x;
+		final int[] x = new int[size];
 		int fX;
 
-		int crossoverOffset;
-		for (int currentPair = 0; currentPair < population.size(); currentPair += 2) {
-			crossoverOffset = RANDOMIZER.nextInt(nbQueens);
+		// Crossovers
+		final int firstStateIndex = RANDOMIZER.nextInt(population.size());
+		final int secondStateIndex = RANDOMIZER.nextInt(population.size());
+		final int crossoverIndex = RANDOMIZER.nextInt(size);
 
-			// First crossover.
-			x = new int[nbQueens];
-			System.arraycopy(population.get(currentPair), 0, x, 0, crossoverOffset);
-			System.arraycopy(population.get(currentPair + 1), crossoverOffset, x, crossoverOffset, nbQueens - crossoverOffset);
-			fX = fitness(x);
+		System.arraycopy(population.get(firstStateIndex), 0, x, 0, crossoverIndex);
+		System.arraycopy(population.get(secondStateIndex), crossoverIndex, x, crossoverIndex, size - crossoverIndex);
 
-			if (fX < fMin) {
-				fMin = fX;
-				xMin = x;
-			}
+		fX = fitness(x);
+		if (fX < fMin) {
+			xMin = x.clone();
+			fMin = fX;
+		}
 
-			// Second crossover.
-			x = new int[nbQueens];
-			System.arraycopy(population.get(currentPair + 1), 0, x, 0, crossoverOffset);
-			System.arraycopy(population.get(currentPair), crossoverOffset, x, crossoverOffset, nbQueens - crossoverOffset);
-			fX = fitness(x);
+		System.arraycopy(population.get(secondStateIndex), 0, x, 0, crossoverIndex);
+		System.arraycopy(population.get(firstStateIndex), crossoverIndex, x, crossoverIndex, size - crossoverIndex);
 
-			if (fX < fMin) {
-				fMin = fX;
-				xMin = x;
-			}
+		fX = fitness(x);
+		if (fX < fMin) {
+			xMin = x.clone();
+			fMin = fX;
 		}
 
 		return xMin;
 	}
 
 	/**
-	 * Apply the mutation operation on a given population.
+	 * Apply a mutation operation on a random state from a given population.
 	 * 
 	 * @param population
 	 *            The population.
-	 * @param nbQueens
-	 *            The number of queens.
-	 * @return The best state.
+	 * @return The new generated state.
 	 */
-	private int[] mutation(List<int[]> population, int nbQueens) {
-		int[] selectedState = population.get(RANDOMIZER.nextInt(population.size())).clone();
+	private int[] mutation(List<int[]> population) {
+		final int[] randomState = population.get(RANDOMIZER.nextInt(population.size())).clone();
 
-		int y;
-		int x = RANDOMIZER.nextInt(nbQueens);
-		do {
-			y = RANDOMIZER.nextInt(nbQueens);
-		} while (x == y);
+		final int x = RANDOMIZER.nextInt(randomState.length);
+		final int y = RANDOMIZER.nextInt(randomState.length);
+		randomState[x] = y;
 
-		int temp = selectedState[x];
-		selectedState[x] = selectedState[y];
-		selectedState[y] = temp;
-
-		return selectedState;
+		return randomState;
 	}
 }
